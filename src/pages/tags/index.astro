@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts, collectTags, tagHref } from '../../lib/posts';
+const tags = collectTags(await getPosts());
+---
+
+<Base title="Tags" description="Browse posts by topic.">
+  <div class="wrap">
+    <header class="page-title">
+      <p class="meta-label">{tags.length} {tags.length === 1 ? 'topic' : 'topics'}</p>
+      <h1>Tags</h1>
+    </header>
+    {tags.length === 0 ? (
+      <div class="empty"><h3>No tags yet.</h3><p>Add <code>tags: ["example"]</code> to a post's front matter.</p></div>
+    ) : (
+      <div class="tag-cloud">{tags.map((t) => <a class="chip" href={tagHref(t.name)}>{t.name} <small>{t.count}</small></a>)}</div>
+    )}
+  </div>
+</Base>

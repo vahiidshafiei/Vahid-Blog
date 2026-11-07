@@ -1,0 +1,69 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PostRow from '../../components/PostRow.astro';
+import { getPosts, formatDate, readingMinutes, tagHref, postHref, relatedPosts } from '../../lib/posts';
+import type { Post } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, i) => ({
+    params: { id: post.id },
+    props: { post, newer: posts[i - 1], older: posts[i + 1], all: posts },
+  }));
+}
+
+interface Props { post: Post; newer?: Post; older?: Post; all: Post[] }
+const { post, newer, older, all } = Astro.props;
+const { Content, headings } = await render(post);
+const d = post.data;
+const rtl = d.lang === 'fa';
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const related = relatedPosts(post, all);
+const minutes = readingMinutes(post.body);
+---
+
+<Base title={d.title} description={d.description} type="article" publishedTime={d.date} modifiedTime={d.updated} tags={d.tags}>
+  <div class="progress" aria-hidden="true"></div>
+  <article class="wrap" data-pagefind-body lang={d.lang} dir={rtl ? 'rtl' : 'ltr'}>
+    <header class="article-head" lang={d.lang}>
+      <p class="meta-label">{d.category ?? 'Article'}</p>
+      <h1 data-pagefind-meta="title">{d.title}</h1>
+      {d.subtitle && <p class="subtitle">{d.subtitle}</p>}
+      <div class="article-meta meta-label">
+        <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+        {d.updated && <span>Updated <time datetime={d.updated.toISOString()}>{formatDate(d.updated)}</time></span>}
+        <span>{minutes} min read</span>
+      </div>
+    </header>
+
+    <div class="article-layout">
+      <div class="prose" lang={d.lang}><Content /></div>
+      {toc.length >= 3 && (
+        <nav class="toc" aria-label="On this page" data-pagefind-ignore dir="ltr">
+          <span class="meta-label">On this page</span>
+          <ol>
+            {toc.map((h) => <li class={h.depth === 3 ? 'l3' : ''}><a href={`#${h.slug}`}>{h.text}</a></li>)}
+          </ol>
+        </nav>
+      )}
+    </div>
+
+    <footer class="article-foot" data-pagefind-ignore>
+      {d.tags.length > 0 && <div class="tag-cloud" style="margin:0">{d.tags.map((t) => <a class="chip" href={tagHref(t)}>{t}</a>)}</div>}
+      {(newer || older) && (
+        <nav class="pager" aria-label="More posts" dir="ltr">
+          {older ? <a class="prev" href={postHref(older)}><span class="meta-label">← Older</span><b>{older.data.title}</b></a> : <span />}
+          {newer ? <a class="next" href={postHref(newer)}><span class="meta-label">Newer →</span><b>{newer.data.title}</b></a> : null}
+        </nav>
+      )}
+    </footer>
+
+    {related.length > 0 && (
+      <section class="section" style="padding-top:0" data-pagefind-ignore dir="ltr">
+        <div class="section-head"><h2>Related</h2></div>
+        <ul class="post-list">{related.map((p) => <PostRow post={p} />)}</ul>
+      </section>
+    )}
+  </article>
+</Base>

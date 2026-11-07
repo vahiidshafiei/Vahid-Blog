@@ -1,0 +1,23 @@
+---
+import type { Post } from '../lib/posts';
+import { postHref, formatDate, tagHref } from '../lib/posts';
+interface Props { post: Post; delay?: number }
+const { post, delay = 0 } = Astro.props;
+const d = post.data;
+---
+
+<li class="post-row reveal" style={`--d:${delay}ms`} dir={d.lang === 'fa' ? 'rtl' : undefined} lang={d.lang}>
+  <a class="row-link" href={postHref(post)}>
+    <span class="meta-label">{formatDate(d.date, 'en')}{d.category ? ` · ${d.category}` : ''}</span>
+    <span>
+      <h3>{d.title}</h3>
+      <p>{d.description}</p>
+    </span>
+    <span class="arrow" aria-hidden="true">→</span>
+  </a>
+  {d.tags.length > 0 && (
+    <div class="row-tags" style="padding-bottom:1.2rem">
+      {d.tags.map((t) => <a class="chip" href={tagHref(t)}>{t}</a>)}
+    </div>
+  )}
+</li>

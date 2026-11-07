@@ -1,0 +1,25 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostRow from '../../components/PostRow.astro';
+import { getPosts, collectTags } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return collectTags(posts).map((t) => ({
+    params: { tag: t.slug },
+    props: { name: t.name, posts: posts.filter((p) => collectTags([p]).some((x) => x.slug === t.slug)) },
+  }));
+}
+const { name, posts } = Astro.props;
+---
+
+<Base title={`#${name}`} description={`Posts tagged ${name}.`}>
+  <div class="wrap">
+    <header class="page-title">
+      <p class="meta-label">Tag · {posts.length} {posts.length === 1 ? 'post' : 'posts'}</p>
+      <h1>{name}</h1>
+      <p><a class="link-arrow" href="/tags">← All tags</a></p>
+    </header>
+    <ul class="post-list" style="margin-top:2rem">{posts.map((p, i) => <PostRow post={p} delay={i * 40} />)}</ul>
+  </div>
+</Base>

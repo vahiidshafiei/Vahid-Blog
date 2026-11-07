@@ -1,0 +1,31 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostRow from '../../components/PostRow.astro';
+import { getPosts } from '../../lib/posts';
+
+const posts = await getPosts();
+const byYear = new Map<number, typeof posts>();
+for (const p of posts) {
+  const y = p.data.date.getUTCFullYear();
+  byYear.set(y, [...(byYear.get(y) ?? []), p]);
+}
+---
+
+<Base title="Writing" description="All posts, newest first.">
+  <div class="wrap">
+    <header class="page-title">
+      <p class="meta-label">Archive · {posts.length} {posts.length === 1 ? 'post' : 'posts'}</p>
+      <h1>Writing</h1>
+    </header>
+    {posts.length === 0 ? (
+      <div class="empty"><h3>No posts yet.</h3><p>Add a Markdown file to <code>src/content/posts</code>.</p></div>
+    ) : (
+      [...byYear.entries()].map(([year, items]) => (
+        <section class="year-block">
+          <h2>{year}</h2>
+          <ul class="post-list">{items.map((p, i) => <PostRow post={p} delay={i * 40} />)}</ul>
+        </section>
+      ))
+    )}
+  </div>
+</Base>

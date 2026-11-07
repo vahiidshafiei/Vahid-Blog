@@ -1,0 +1,23 @@
+---
+import ThemePicker from './ThemePicker.astro';
+import { SITE } from '../lib/site';
+
+const path = Astro.url.pathname.replace(/\/$/, '');
+const is = (p: string) => (path === p || path.startsWith(p + '/') ? 'page' : undefined);
+---
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label={`${SITE.fullName} — home`}>{SITE.name}<span>.</span></a>
+    <nav class="nav" aria-label="Primary">
+      <a class="hide-sm" href="/posts" aria-current={is('/posts')}>Writing</a>
+      <a class="hide-sm" href="/tags" aria-current={is('/tags')}>Tags</a>
+      <button class="nav-btn search-btn" id="open-search" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></svg>
+        <span class="label">Search</span>
+        <kbd>Ctrl K</kbd>
+      </button>
+      <ThemePicker />
+    </nav>
+  </div>
+</header>

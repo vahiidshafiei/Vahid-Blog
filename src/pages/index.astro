@@ -1,0 +1,81 @@
+---
+import Base from '../layouts/Base.astro';
+import PostRow from '../components/PostRow.astro';
+import { SITE } from '../lib/site';
+import { getPosts, collectTags, postHref, formatDate, tagHref } from '../lib/posts';
+
+const posts = await getPosts();
+const tags = collectTags(posts);
+const featured = posts.filter((p) => p.data.featured).slice(0, 3);
+const recent = posts.slice(0, 6);
+// Stats are computed from content, never hard-coded.
+const stats = [
+  { label: 'Posts', value: posts.length },
+  { label: 'Topics', value: tags.length },
+];
+---
+
+<Base>
+  <section class="hero">
+    <div class="hero-bg" aria-hidden="true"><div class="glow a"></div><div class="glow b"></div></div>
+    <div class="wrap">
+      <p class="meta-label reveal">Personal archive</p>
+      <h1 class="reveal" style="--d:80ms">{SITE.name}<span class="dot">.</span></h1>
+      <p class="hero-sub reveal" style="--d:180ms">
+        {SITE.descriptors.map((d) => <span>{d}</span>)}
+      </p>
+      {posts.length > 0 && (
+        <div class="stats reveal" style="--d:280ms">
+          {stats.map((s) => (
+            <div class="stat"><b>{s.value}</b><span class="meta-label">{s.label}</span></div>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+
+  {featured.length > 0 && (
+    <section class="section" style="padding-top:1rem">
+      <div class="wrap">
+        <div class="section-head"><h2>Featured</h2></div>
+        <div class="featured-grid">
+          {featured.map((p, i) => (
+            <a class="card reveal" style={`--d:${i * 90}ms`} href={postHref(p)} dir={p.data.lang === 'fa' ? 'rtl' : undefined} lang={p.data.lang}>
+              <span class="meta-label">{formatDate(p.data.date)}{p.data.category ? ` · ${p.data.category}` : ''}</span>
+              <h3>{p.data.title}</h3>
+              <p>{p.data.description}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Recent writing</h2>
+        {posts.length > recent.length && <a class="link-arrow" href="/posts">All posts →</a>}
+      </div>
+      {recent.length > 0 ? (
+        <ul class="post-list">{recent.map((p, i) => <PostRow post={p} delay={i * 60} />)}</ul>
+      ) : (
+        <div class="empty">
+          <h3>Nothing here yet.</h3>
+          <p>Add a Markdown file to <code>src/content/posts</code> and it will appear on this page.</p>
+        </div>
+      )}
+    </div>
+  </section>
+
+  {tags.length > 0 && (
+    <section class="section" style="padding-top:0">
+      <div class="wrap">
+        <div class="section-head"><h2>Topics</h2><a class="link-arrow" href="/tags">All tags →</a></div>
+        <div class="tag-cloud" style="margin-top:0">
+          {tags.slice(0, 14).map((t) => <a class="chip" href={tagHref(t.name)}>{t.name} <small>{t.count}</small></a>)}
+        </div>
+      </div>
+    </section>
+  )}
+</Base>
